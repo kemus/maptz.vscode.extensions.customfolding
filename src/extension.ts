@@ -7,49 +7,43 @@ import { IConfiguration } from "./config/IConfiguration";
 import { Engine } from "./engine/Engine";
 
 export function activate(context: vscode.ExtensionContext) {
-
-
-
   /* #region  Initial Activation */
   const configService = new config.ConfigurationService(context);
   const eng = new Engine(configService);
 
-
-
   const commands = [];
   commands.push({
     name: "regionfolder.wrapWithRegion",
-    action: () => eng.wrapWithRegion()
+    action: () => eng.wrapWithRegion(),
   });
   commands.push({
     name: "regionfolder.wrapWithRegionAndComment",
-    action: () => eng.wrapWithRegionAndComment()
+    action: () => eng.wrapWithRegionAndComment(),
   });
   commands.push({
     name: "regionfolder.collapseDefault",
-    action: () => eng.collapseAllDefaultFolds()
+    action: () => eng.collapseAllDefaultFolds(),
   });
   commands.push({
     name: "regionfolder.collapseAllRegions",
-    action: () => eng.collapseAllRegions()
+    action: () => eng.collapseAllRegions(),
   });
   commands.push({
     name: "regionfolder.deleteRegion",
-    action: () => eng.deleteCurrentRegion()
+    action: () => eng.deleteCurrentRegion(),
   });
   commands.push({
     name: "regionfolder.removeCurrentRegionTags",
-    action: () => eng.removeCurrentRegionTags()
+    action: () => eng.removeCurrentRegionTags(),
   });
   commands.push({
     name: "regionfolder.selectCurrentRegion",
-    action: () => eng.selectCurrentRegion()
+    action: () => eng.selectCurrentRegion(),
   });
   commands.push({
     name: "regionfolder.selectCurrentRegionContents",
-    action: () => eng.selectCurrentRegionContents()
+    action: () => eng.selectCurrentRegionContents(),
   });
-
 
   for (let comm of commands) {
     let disp = vscode.commands.registerCommand(comm.name, comm.action);
@@ -64,26 +58,32 @@ export function activate(context: vscode.ExtensionContext) {
       context.subscriptions.push(
         vscode.languages.registerDocumentSymbolProvider(
           { scheme: "file", language: lang },
-          new SwmfConfigDocumentSymbolProvider(configService, lang), metadata)
+          new SwmfConfigDocumentSymbolProvider(configService, lang),
+          metadata,
+        ),
       );
     }
   }
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {}
 
-class SwmfConfigDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
-
-  constructor(private configService: config.ConfigurationService, public languageId: string) {
-
-  }
+class SwmfConfigDocumentSymbolProvider
+  implements vscode.DocumentSymbolProvider
+{
+  constructor(
+    private configService: config.ConfigurationService,
+    public languageId: string,
+  ) {}
 
   public provideDocumentSymbols(
     document: vscode.TextDocument,
-    token: vscode.CancellationToken): Promise<vscode.DocumentSymbol[]> {
-
-    const langConfig = this.configService.getConfigurationForCurrentLanguage(this.languageId);
+    token: vscode.CancellationToken,
+  ): Promise<vscode.DocumentSymbol[]> {
+    const langConfig = this.configService.getConfigurationForCurrentLanguage(
+      this.languageId,
+    );
     return new Promise((resolve, reject) => {
       if (!langConfig) {
         resolve([]);
@@ -92,7 +92,9 @@ class SwmfConfigDocumentSymbolProvider implements vscode.DocumentSymbolProvider 
       for (var i = 0; i < document.lineCount; i++) {
         var line = document.lineAt(i);
 
-        if (!langConfig) { continue; }
+        if (!langConfig) {
+          continue;
+        }
         var start = new RegExp(langConfig.foldStartRegex, "i"); //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
         var startMatch = <RegExpExecArray>start.exec(line.text);
 
@@ -106,9 +108,12 @@ class SwmfConfigDocumentSymbolProvider implements vscode.DocumentSymbolProvider 
           }
 
           let symbol = new vscode.DocumentSymbol(
-            symName, 'r',
+            symName,
+            "r",
             vscode.SymbolKind.Function,
-            line.range, line.range);
+            line.range,
+            line.range,
+          );
           symbols.push(symbol);
         }
       }
@@ -117,6 +122,8 @@ class SwmfConfigDocumentSymbolProvider implements vscode.DocumentSymbolProvider 
   }
 }
 
-class SwmfDocumentSymbolMetadata implements vscode.DocumentSymbolProviderMetadata {
+class SwmfDocumentSymbolMetadata
+  implements vscode.DocumentSymbolProviderMetadata
+{
   public label = "#regions";
 }
